@@ -1,0 +1,6 @@
+Property,Value
+Version,6
+IsEventOrderingConsistent,TRUE
+EventOrderScope,Restricted
+EventOrderScopeColumns,SubjectID;AssignmentID;ProblemID
+CodeStateRepresentation,Table
