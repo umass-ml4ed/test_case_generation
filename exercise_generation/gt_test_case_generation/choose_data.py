@@ -6,7 +6,7 @@ from collections import defaultdict
 def choose_indices(df):
     """
     Choose particular p (number of passed test cases)
-    Choose three codes - median, least, most-1
+    Choose three codes - median, median of the upper quartile, most-1
     """
     group_wise_indices = dict()
     for i, row in df.iterrows():
@@ -17,10 +17,12 @@ def choose_indices(df):
             assert unique_p[-1] == q # code where all test cases pass
         except AssertionError:
             print(i, unique_p_str, q)
-        # median of unique_p
-        median = unique_p[len(unique_p)//2]
-        least, most = unique_p[0], unique_p[-2]
-        choose_indices = [least, median, most, q]
+        # chose data above the median
+        least = unique_p[len(unique_p)//2]
+        most = unique_p[-2]
+        above_median_range = len(unique_p)-2 - len(unique_p)//2
+        middle = unique_p[len(unique_p)//2:-1][above_median_range//2]
+        choose_indices = [least, middle, most, q]
         # unique choose_indices - without changing the order
         choose_indices = sorted(list(set(choose_indices)))
         # store data
@@ -41,13 +43,17 @@ def choose_data_per_group(df, group_wise_indices):
         choosen_indices = group_wise_indices[group]
         choosen_score = [index/choosen_indices[-1] for index in choosen_indices]
         code_ids = []
+        max_code_per_score = 5
         for c_score in choosen_score:
+            ctr = 0
             # iterate over rows
+            local_code_ids = []
             for i, row in data.iterrows():
                 score = row['Score'] 
-                if abs(score - c_score) < 0.0001:
-                    code_ids.append(row['CodeStateID'])
-                    break
+                if abs(score - c_score) < 0.0001 and ctr < max_code_per_score:
+                    local_code_ids.append(row['CodeStateID'])
+                    ctr += 1
+            code_ids.append(local_code_ids)
         group_wise_data[group] = code_ids    
         assert len(code_ids) == len(choosen_indices) # sanity check
     return group_wise_data

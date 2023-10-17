@@ -1,0 +1,30 @@
+
+/*public class SORTSUM
+{
+public int sortaSum(int a, int b)
+{
+    if (a + b > 19 && a + b < 10)
+    {
+        return(sum);
+    }
+    else
+    {
+        return(20);
+    }
+}
+public static void main(String args[])
+{
+    SORTSUM s = new SORTSUM();
+}
+}*/
+public int sortaSum(int a, int b)
+{
+    if (a + b > 19 && a + b < 10)
+    {
+        return(sum);
+    }
+    else
+    {
+        return(20);
+    }
+}
