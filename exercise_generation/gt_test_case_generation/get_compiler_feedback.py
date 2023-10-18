@@ -5,7 +5,16 @@ Returns the results of the execution along with their comparision
 
 import os 
 from ast import literal_eval
+import threading
+import subprocess
 
+def run_command(java_code_group_path, code_name):
+    # execute the code using a system call and record the output as text
+    # create a directory for the output
+    if not os.path.exists('{:s}/output'.format(java_code_group_path)):
+        os.mkdir('{:s}/output'.format(java_code_group_path))
+    # execute the code
+    os.system('java {:s}/{:s}.java output > {:s}/output/output_{:s}.txt'.format(java_code_group_path, code_name, java_code_group_path, code_name))
 
 def execute_and_store(raw_group, code_name):
     '''
@@ -15,16 +24,41 @@ def execute_and_store(raw_group, code_name):
     group_elements = literal_eval(raw_group)
     group = '{:d}_{:d}'.format(group_elements[0], group_elements[1])
     java_code_group_path = 'compiler_code/{:s}'.format(group)
-    # execute the code using a system call and record the output as text
-    # create a directory for the output
-    if not os.path.exists('{:s}/output'.format(java_code_group_path)):
-        os.mkdir('{:s}/output'.format(java_code_group_path))
-    # execute the code
-    os.system('java {:s}/{:s}.java output > {:s}/output/output_{:s}.txt'.format(java_code_group_path, code_name, java_code_group_path, code_name))
+    
+    thread = threading.Thread(target=run_command, args=(java_code_group_path, code_name))
+    thread.start()
+    thread.join(timeout=10)  # Set the timeout in seconds
+
+    if thread.is_alive():
+        print('in here')
+        thread.join()  # Ensure the thread is terminated
+        return "Timeout"
+    
     # read the output
     with open('{:s}/output/output_{:s}.txt'.format(java_code_group_path, code_name), 'r') as f:
         output = f.read()
     return output
+
+def execute_and_store_subprocess(raw_group, code_name):
+    try:
+        group_elements = literal_eval(raw_group)
+        group = '{:d}_{:d}'.format(group_elements[0], group_elements[1])
+        java_code_group_path = 'compiler_code/{:s}'.format(group)
+        
+        if not os.path.exists('{:s}/output'.format(java_code_group_path)):
+            os.mkdir('{:s}/output'.format(java_code_group_path))
+        
+        command = 'java {:s}/{:s}.java output > {:s}/output/output_{:s}.txt'.format(java_code_group_path, code_name, java_code_group_path, code_name)
+        timeout = 10
+        result = subprocess.run(command, shell=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except subprocess.TimeoutExpired:
+        return 'Timeout'
+
+    # read the output
+    with open('{:s}/output/output_{:s}.txt'.format(java_code_group_path, code_name), 'r') as f:
+        output = f.read()
+    return output
+
 
 def compare_outputs(output_1, output_2):
     '''

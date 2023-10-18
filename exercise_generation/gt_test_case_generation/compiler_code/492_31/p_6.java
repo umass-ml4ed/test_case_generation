@@ -1,8 +1,12 @@
 public class REPEATEND{
-public String repeatEnd(String str, int n)
-{
-    String end = str.substring(str.length() - n);
+public String repeatEnd(String str, int n){
+try {
+String end = str.substring(str.length() - n);
     return end;
+} catch (Exception e) {
+System.out.print(e + " ");
+return "ERROR";
+}
 }
 
 public void repeatEnd_test(String []s){

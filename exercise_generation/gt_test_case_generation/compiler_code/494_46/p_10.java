@@ -1,7 +1,7 @@
 public class ISEVERYWHERE{
-public boolean isEverywhere(int[] nums, int val)
-{
-    boolean result = false;
+public boolean isEverywhere(int[] nums, int val){
+try {
+boolean result = false;
     for (int i = 0; i < nums.length - 2; i++)
     {
         if (nums[i] == val && nums[i+1] != val && nums[i+2] == val )
@@ -10,6 +10,10 @@ public boolean isEverywhere(int[] nums, int val)
         }
     }
     return(result);
+} catch (Exception e) {
+System.out.print(e + " ");
+return false;
+}
 }
 
 public void isEverywhere_test(String []s){

@@ -1,7 +1,7 @@
 public class ANSWERCELL{
-public boolean answerCell(boolean isMorning, boolean isMom, boolean isAsleep)
-{
-    if (isMorning == true && isMom == true)
+public boolean answerCell(boolean isMorning, boolean isMom, boolean isAsleep){
+try {
+if (isMorning == true && isMom == true)
     {
         return true;
     }
@@ -14,7 +14,10 @@ public boolean answerCell(boolean isMorning, boolean isMom, boolean isAsleep)
     {
         return true;
     }
-    
+} catch (Exception e) {
+System.out.print(e + " ");
+return false;
+}
 }
 
 public void answerCell_test(String []s){

@@ -4,6 +4,7 @@ Generate code for testing the test cases for each problem
 import os
 import pandas as pd 
 import json 
+import re
 from ast import literal_eval
 
 def get_codes(df):
@@ -83,7 +84,45 @@ def extract_test_cases(group, trial, p):
     test_cases_list = list(test_cases.values())
     return test_cases_list
 
-def construct_java_code(test_cases, function_name, class_name, student_code):
+def parse_java_code(java_code):
+    '''
+    Takes Java code as input and returns the function signature and the main body
+    '''
+    java_code = java_code.strip()
+    signature = re.search(r'(.*?){', java_code, re.DOTALL).group(1).strip()
+    body_start_index = java_code.index("{") + 1
+    body_end_index = java_code.rindex("}")
+    body = java_code[body_start_index : body_end_index].strip()
+    return signature, body
+
+def handle_exception(student_code, output_type=None):
+    '''
+    Wraps student code in a try-catch block to handle exceptions
+    '''
+    # extract function signature and main body (in between the outermost two curly braces)
+    function_signature, main_body = parse_java_code(student_code)
+    # TODO: Wrap main_body in a try catch block 
+    except_code = 'try {\n'
+    except_code += main_body
+    except_code += '\n'
+    except_code += '} catch (Exception e) {\n'
+    except_code += 'System.out.print(e + " ");\n'
+    if output_type == 'int':
+        except_code += 'return -999;\n'
+    elif output_type == 'boolean':
+        except_code += 'return false;\n'
+    elif output_type == 'string':
+        except_code += 'return "ERROR";\n'
+    elif output_type == 'int array':
+        except_code += 'return new int[] {-999};\n'
+    elif output_type == 'string array':
+        except_code += 'return new String[] {"ERROR"};\n'
+    except_code += '}\n'
+    # wrap the main code in the function defintion
+    new_code = function_signature + '{\n' + except_code + '}\n'
+    return new_code
+
+def construct_java_code(test_cases, function_name, class_name, student_code, output_type):
     '''
     Constructs the full Java code
     '''
@@ -91,11 +130,13 @@ def construct_java_code(test_cases, function_name, class_name, student_code):
     unit_test_case_function_code = create_unit_test_case_function(function_name, test_cases)
     # create a main function
     main_function_code = get_main_function_code(class_name, function_name)
+    # TODO: Wrap student code in a try-catch block to handle exceptions
+    exception_handeled_code = handle_exception(student_code, output_type)
     # Weave everything together into a class
-    complete_java_code = get_complete_java_code(class_name, student_code, unit_test_case_function_code, main_function_code)
+    complete_java_code = get_complete_java_code(class_name, exception_handeled_code, unit_test_case_function_code, main_function_code)
     return complete_java_code
 
-def procure_compiler_code(group, code, trial, p):
+def procure_compiler_code(group, code, trial, p, output_type):
     # extract function name
     function_name = extract_function_name(code)
     class_name = function_name.upper()
@@ -106,7 +147,7 @@ def procure_compiler_code(group, code, trial, p):
     # get test cases
     test_cases = extract_test_cases(group, trial, p)
     # construct java code for buggy student code
-    complete_java_code = construct_java_code(test_cases, function_name, class_name, code)
+    complete_java_code = construct_java_code(test_cases, function_name, class_name, code, output_type)
     return complete_java_code
 
 def save_code(group, code, p):

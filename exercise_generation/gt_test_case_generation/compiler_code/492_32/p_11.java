@@ -1,7 +1,7 @@
 public class PLUSOUT{
-public String plusOut(String str, String word)
-{
-    int len = str.length();
+public String plusOut(String str, String word){
+try {
+int len = str.length();
 	int wLen = word.length();
 	int pos = str.indexOf(word);
 	int i = 0;
@@ -22,6 +22,10 @@ public String plusOut(String str, String word)
 		stbuild.append('+');
     }
 	return stbuild.toString();
+} catch (Exception e) {
+System.out.print(e + " ");
+return "ERROR";
+}
 }
 
 public void plusOut_test(String []s){

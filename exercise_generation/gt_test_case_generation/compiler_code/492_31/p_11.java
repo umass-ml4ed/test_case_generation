@@ -1,13 +1,17 @@
 public class REPEATEND{
-public String repeatEnd(String str, int n)
-{
-    StringBuilder stbuild = new StringBuilder(n*n);
+public String repeatEnd(String str, int n){
+try {
+StringBuilder stbuild = new StringBuilder(n*n);
 	String last = str.substring(str.length()-n);
 	for(int i = 0; i < n; i++)
     {
 		stbuild.append(last);
     }
 	return stbuild.toString();
+} catch (Exception e) {
+System.out.print(e + " ");
+return "ERROR";
+}
 }
 
 public void repeatEnd_test(String []s){
