@@ -73,12 +73,12 @@ def get_complete_java_code(class_name, code, unit_test_case_function_code, main_
     complete_java_code += '}\n'
     return complete_java_code
 
-def extract_test_cases(group, function_name):
+def extract_test_cases(group, trial, p):
     '''
     Reads test cases json and returns a list of test cases
     '''
     group_tuple = literal_eval(group)
-    with open('llm_output/{:d}_{:d}.json'.format(group_tuple[0], group_tuple[1]), 'r') as f:
+    with open('llm_output/{:d}_{:d}/t{:d}/{:d}.json'.format(group_tuple[0], group_tuple[1], trial, p), 'r') as f:
         test_cases = json.load(f)
     test_cases_list = list(test_cases.values())
     return test_cases_list
@@ -95,50 +95,55 @@ def construct_java_code(test_cases, function_name, class_name, student_code):
     complete_java_code = get_complete_java_code(class_name, student_code, unit_test_case_function_code, main_function_code)
     return complete_java_code
 
+def procure_compiler_code(group, code, trial, p):
+    # extract function name
+    function_name = extract_function_name(code)
+    class_name = function_name.upper()
+    # print('#####')
+    # print('group: ', group)
+    # print('function_name: ', function_name)
+    # print('#####')
+    # get test cases
+    test_cases = extract_test_cases(group, trial, p)
+    # construct java code for buggy student code
+    complete_java_code = construct_java_code(test_cases, function_name, class_name, code)
+    return complete_java_code
+
+def save_code(group, code, p):
+    '''
+    Saves the generated code
+    '''
+    group_tuple = literal_eval(group)
+    # Save the code
+    if not os.path.exists('compiler_code/{:d}_{:d}'.format(group_tuple[0], group_tuple[1])):
+        os.mkdir('compiler_code/{:d}_{:d}'.format(group_tuple[0], group_tuple[1]))
+    with open('compiler_code/{:d}_{:d}/p_{:d}.java'.format(group_tuple[0], group_tuple[1], p), 'w') as f:
+        f.write(code)
 
 def main():
-    # 1. Code states data
-    with open('analyze_data/group_wise_code_states_id.json', 'r') as f:
-        group_wise_data = json.load(f)
-    # 2. Actual code data
-    code_states_df = pd.read_csv('../S19_All_Release_2_10_22/Data/CodeStates/CodeStates.csv')
+    # # 1. Code states data
+    # with open('analyze_data/group_wise_code_states_id.json', 'r') as f:
+    #     group_wise_data = json.load(f)
+    # # 2. Actual code data
+    # code_states_df = pd.read_csv('../S19_All_Release_2_10_22/Data/CodeStates/CodeStates.csv')
 
-    # Hash data  
-    code_dict = get_codes(code_states_df)
-    group_wise_codes = dict()
-    for group, code_values in group_wise_data.items():
-        all_codes = []
-        for ctr, all_code_id in enumerate(code_values['code_ids']):
-            expt_code = []
-            for code_id in all_code_id:
-                expt_code.append({'code': code_dict[code_id], 'p': code_values['p'][ctr]})
-            all_codes.append(expt_code)
-        group_wise_codes[group] = all_codes
+    # # Hash data  
+    # code_dict = get_codes(code_states_df)
+    # group_wise_codes = dict()
+    # for group, code_values in group_wise_data.items():
+    #     all_codes = []
+    #     for ctr, code_id in enumerate(code_values['code_ids']):
+    #         all_codes.append({'code': code_dict[code_id], 'p': code_values['p'][ctr]})
+    #     group_wise_codes[group] = all_codes
     
-    test_cases = '' # assume we have the printing of test cases as a string - a valid Java code
+    # test_cases = '' # assume we have the printing of test cases as a string - a valid Java code
     
-    # iterate over all groups and codes
-    for group, all_codes in group_wise_codes.items():
-        group_tuple = literal_eval(group)
-        # extract function name
-        function_name = extract_function_name(all_codes[1][0]['code'])
-        class_name = function_name.upper()
-        print('#####')
-        print('group: ', group)
-        print('function_name: ', function_name)
-        print('#####')
-        
-        # get test cases
-        test_cases = extract_test_cases(group, function_name)
-        # construct java code for buggy student code
-        complete_java_code = construct_java_code(test_cases, function_name, class_name, all_codes[1][0]['code'])
-        # Save the code
-        # create directory 
-        if not os.path.exists('compiler_code/{:d}_{:d}'.format(group_tuple[0], group_tuple[1])):
-            os.mkdir('compiler_code/{:d}_{:d}'.format(group_tuple[0], group_tuple[1]))
-        with open('compiler_code/{:d}_{:d}/p_{:d}.java'.format(group_tuple[0], group_tuple[1], all_codes[1][0]['p']), 'w') as f:
-            f.write(complete_java_code)
-        break
+    # # iterate over all groups and codes
+    # for group, all_codes in group_wise_codes.items():
+    #     complete_java_code = procure_compiler_code(group, all_codes[0]['code'], 1, all_codes[0]['p'])
+    #     save_code(group, complete_java_code, all_codes[0]['p'])
+    #     break
+    pass
 
 if __name__ == main():
     main()

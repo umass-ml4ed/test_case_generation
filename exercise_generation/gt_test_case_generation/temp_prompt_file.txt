@@ -9,14 +9,10 @@ Partially Correct Code:
 ```java
 public int sortaSum(int a, int b)
 {
-    if (a + b > 19 && a + b < 10)
-    {
-        return(sum);
-    }
+    if (a >= 5 && b >= 5)
+        return 20;
     else
-    {
-        return(20);
-    }
+        return a+b;
 }
 ```
 
@@ -38,7 +34,7 @@ public int sortaSum(int a, int b)
 
 Conditions: 
 1. Total Number of test cases = 15
-2. Fraction of test cases the partially correct code passes = 1/15
+2. Fraction of test cases the partially correct code passes = 8/15
 3. Fraction of test cases the perfect code passes = 15/15
 
 Important: Generate test cases in a JSON format. The key of the JSON dictionary is the test case number and the value is the test case itself as a string, a VALID JAVA code that can be directly fed as an argument to the function without any change.

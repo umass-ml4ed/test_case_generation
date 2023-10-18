@@ -1,3 +1,7 @@
+'''
+Choose code samples for each programming problem. 
+'''
+
 import pandas as pd 
 from ast import literal_eval
 import json
@@ -43,17 +47,13 @@ def choose_data_per_group(df, group_wise_indices):
         choosen_indices = group_wise_indices[group]
         choosen_score = [index/choosen_indices[-1] for index in choosen_indices]
         code_ids = []
-        max_code_per_score = 5
         for c_score in choosen_score:
-            ctr = 0
             # iterate over rows
-            local_code_ids = []
             for i, row in data.iterrows():
                 score = row['Score'] 
-                if abs(score - c_score) < 0.0001 and ctr < max_code_per_score:
-                    local_code_ids.append(row['CodeStateID'])
-                    ctr += 1
-            code_ids.append(local_code_ids)
+                if abs(score - c_score) < 0.0001:
+                    code_ids.append(row['CodeStateID'])
+                    break
         group_wise_data[group] = code_ids    
         assert len(code_ids) == len(choosen_indices) # sanity check
     return group_wise_data

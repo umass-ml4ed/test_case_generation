@@ -14,6 +14,67 @@ import numpy as np
 import openai
 from openai.error import RateLimitError, Timeout, APIError, ServiceUnavailableError
 
+
+def set_api_key():
+    '''
+    Set OpenAI API key
+    '''
+    openai.api_key = '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'
+
+###############################################
+# NOTE: Response generation
+delay_time = 5
+decay_rate = 0.8
+
+def chat_llm(model, messages):
+    '''
+    Chat with LLM
+    '''
+    global delay_time
+
+    # sleep to avoid rate limit error
+    time.sleep(delay_time)
+
+    try:
+        response = openai.ChatCompletion.create(
+            model=model,
+            messages=messages,
+            temperature=0.0,
+            max_tokens=2000,
+        )
+    except (RateLimitError, Timeout, APIError, ServiceUnavailableError) as exc:
+        print(exc)
+        delay_time *= 2
+        return chat_llm(model, messages)
+
+    llm_response = response['choices'][0]['message']['content']
+
+    # save into temporary file for inspection 
+    with open('temp_llm_response.txt', 'w') as outfile:
+        print(llm_response, file=outfile)
+
+    return llm_response
+
+def save_llm_response(llm_response, raw_group, trial, p):
+    group_elements = literal_eval(raw_group)
+    group = '{:d}_{:d}'.format(group_elements[0], group_elements[1])
+    # create a directory for the output
+    if not os.path.exists('llm_output/{:s}'.format(group)):
+        os.mkdir('llm_output/{:s}'.format(group))
+    if not os.path.exists('llm_output/{:s}/t{:d}'.format(group, trial)):
+        os.mkdir('llm_output/{:s}/t{:d}'.format(group, trial))
+
+    # parse llm response as JSON format 
+    try:
+        llm_response_json = literal_eval(llm_response)
+        # save the response
+        with open('llm_output/{:s}/t{:d}/{:d}.json'.format(group, trial, p), 'w') as f:
+            json.dump(llm_response_json, f)
+    except Exception as e:
+        return False 
+    return True
+
+
 def get_codes(df):
     '''
     Converts df to dict
@@ -53,14 +114,14 @@ def wrap_java_code(code):
     java_code += '```'
     return java_code  
 
-def create_prompts(problem, correct_code, expt_code, q, input_type):
+def create_initial_prompts(problem, correct_code, expt_code, q, input_type):
     '''
     Create prompt for LLM. 
     '''
     all_prompts = []
     for code, p in expt_code:
-        prefix = 'You are a Programming Expert. Your task is to generate test cases for the following problem and the code pair satisfying the following conditions:\n\n'
-        prompt = prefix + 'Problem: ' + problem + '\n\n'
+        system = 'You are a Programming Expert. Your task is to generate test cases for the following problem and the code pair satisfying the following conditions:\n\n'
+        prompt =  'Problem: ' + problem + '\n\n'
         prompt += 'Code Input Parameters: ' + input_type + '\n\n\n'
         prompt += 'Partially Correct Code:\n' + wrap_java_code(code) + '\n\n'
         prompt += 'Perfect Code:\n' + wrap_java_code(correct_code) + '\n\n'
@@ -72,48 +133,50 @@ def create_prompts(problem, correct_code, expt_code, q, input_type):
         prompt += 'The key of the JSON dictionary is the test case number and the value is the test case itself as a string, a VALID JAVA code that can be directly fed as an argument to the function without any change.\n\n'
         prompt += 'Example: Code Input Parameters - int[] nums, String[] names. Ouptut: Test Case Dictionary:  {"test_case_1": "new int[]{1, 2, 3}, new String[]{"String1", "String2", "String3"}", "test_case_2": "new int[]{4, 5, 6}, new String[]{"NewString1", "NewString2", "NewString3"}"}'
         prompt += '\n\nTest Case Dictionary:'
-        all_prompts.append(prompt)
+        message = [{'role': 'system', 'content': system}, {'role': 'user', 'content': prompt}]
+        all_prompts.append(message)
     return all_prompts
 
 
 def main():
-    ###### Load data ######
-    # 1. Code states data
-    with open('analyze_data/group_wise_code_states_id.json', 'r') as f:
-        group_wise_data = json.load(f)
-    # 2. Actual code data
-    code_states_df = pd.read_csv('../S19_All_Release_2_10_22/Data/CodeStates/CodeStates.csv')
-    # 3. Problem statement data
-    problem_df = pd.read_excel('../2nd CSEDM Data Challenge - Problem Prompts & Concepts Used.xlsx', sheet_name='Sheet1')
-    # 4. Code details
-    code_details_df = pd.read_excel('analyze_data/code_details.xlsx', sheet_name='Sheet1')
+    # ###### Load data ######
+    # # 1. Code states data
+    # with open('analyze_data/group_wise_code_states_id.json', 'r') as f:
+    #     group_wise_data = json.load(f)
+    # # 2. Actual code data
+    # code_states_df = pd.read_csv('../S19_All_Release_2_10_22/Data/CodeStates/CodeStates.csv')
+    # # 3. Problem statement data
+    # problem_df = pd.read_excel('../2nd CSEDM Data Challenge - Problem Prompts & Concepts Used.xlsx', sheet_name='Sheet1')
+    # # 4. Code details
+    # code_details_df = pd.read_excel('analyze_data/code_details.xlsx', sheet_name='Sheet1')
 
-    # Hash data  
-    code_dict = get_codes(code_states_df)
-    problem_dict = get_problems(problem_df)
-    code_details_dict = get_code_details(code_details_df)
+    # # Hash data  
+    # code_dict = get_codes(code_states_df)
+    # problem_dict = get_problems(problem_df)
+    # code_details_dict = get_code_details(code_details_df)
 
-    ###### Prompt LLM ######
-    # Go over the data
-    for group, code_values in group_wise_data.items():
-        problem = problem_dict[group]
-        input_type, output_type = code_details_dict[group]['Input'], code_details_dict[group]['Output']
-        correct_code_id = code_values['code_ids'][-1]
-        correct_code = code_dict[correct_code_id]
-        expt_code = []
-        # collect experiment codes' information
-        for ctr, code_id in enumerate(code_values['code_ids'][:-1]):
-            expt_code.append((code_dict[code_id], code_values['p'][ctr]))
-        q = code_values['p'][-1]
-        print('problem: ', problem)
-        print('correct_code: ', correct_code)
-        print('expt_code: ', expt_code) 
-        print('q: ', q)
-        # create prompt
-        prompts = create_prompts(problem, correct_code, expt_code, q, input_type)
-        with open('temp_prompt_file.txt', 'w') as outfile:
-            print(prompts[0], file=outfile)
-        break
+    # ###### Prompt LLM ######
+    # # Go over the data
+    # for group, code_values in group_wise_data.items():
+    #     problem = problem_dict[group]
+    #     input_type, output_type = code_details_dict[group]['Input'], code_details_dict[group]['Output']
+    #     correct_code_id = code_values['code_ids'][-1]
+    #     correct_code = code_dict[correct_code_id]
+    #     expt_code = []
+    #     # collect experiment codes' information
+    #     for ctr, code_id in enumerate(code_values['code_ids'][:-1]):
+    #         expt_code.append((code_dict[code_id], code_values['p'][ctr]))
+    #     q = code_values['p'][-1]
+    #     print('problem: ', problem)
+    #     print('correct_code: ', correct_code)
+    #     print('expt_code: ', expt_code) 
+    #     print('q: ', q)
+    #     # create prompt
+    #     prompts = create_initial_prompts(problem, correct_code, expt_code, q, input_type)
+    #     with open('temp_prompt_file.txt', 'w') as outfile:
+    #         print(prompts[0], file=outfile)
+    #     break
+    pass
 
 if __name__ == "__main__":
     main()
