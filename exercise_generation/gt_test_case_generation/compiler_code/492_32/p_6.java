@@ -26,15 +26,15 @@ return "ERROR";
 public void plusOut_test(String []s){
 System.out.println(plusOut("hello", "lo"));
 System.out.println(plusOut("hello", "o"));
-System.out.println(plusOut("hello", "hello"));
 System.out.println(plusOut("hello", "he"));
-System.out.println(plusOut("hello", "l"));
+System.out.println(plusOut("hello", "hello"));
 System.out.println(plusOut("hello", ""));
-System.out.println(plusOut("abcabcabc", "abc"));
-System.out.println(plusOut("abcabcabc", "b"));
-System.out.println(plusOut("abcabcabc", "c"));
-System.out.println(plusOut("abcabcabc", "d"));
-System.out.println(plusOut("abcabcabc", "abcabcabc"));
+System.out.println(plusOut("abcxyzabc", "abc"));
+System.out.println(plusOut("abcxyzabc", "xyz"));
+System.out.println(plusOut("abcxyzabc", "def"));
+System.out.println(plusOut("abcxyzabc", ""));
+System.out.println(plusOut("", ""));
+System.out.println(plusOut("abc", "abc"));
 }
 
 public static void main(String []args){

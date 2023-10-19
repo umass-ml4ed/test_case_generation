@@ -7,6 +7,7 @@ import os
 from ast import literal_eval
 import threading
 import subprocess
+import time
 
 def run_command(java_code_group_path, code_name):
     # execute the code using a system call and record the output as text
@@ -41,6 +42,7 @@ def execute_and_store(raw_group, code_name):
 
 def execute_and_store_subprocess(raw_group, code_name):
     try:
+        timeout = 30
         group_elements = literal_eval(raw_group)
         group = '{:d}_{:d}'.format(group_elements[0], group_elements[1])
         java_code_group_path = 'compiler_code/{:s}'.format(group)
@@ -48,16 +50,25 @@ def execute_and_store_subprocess(raw_group, code_name):
         if not os.path.exists('{:s}/output'.format(java_code_group_path)):
             os.mkdir('{:s}/output'.format(java_code_group_path))
         
-        command = 'java {:s}/{:s}.java output > {:s}/output/output_{:s}.txt'.format(java_code_group_path, code_name, java_code_group_path, code_name)
-        timeout = 10
-        result = subprocess.run(command, shell=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        # command = 'java {:s}/{:s}.java output > {:s}/output/output_{:s}.txt'.format(java_code_group_path, code_name, java_code_group_path, code_name)
+        # result = subprocess.run(command, shell=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        new_command = 'java {:s}/{:s}.java output'.format(java_code_group_path, code_name)
+        with open('{:s}/output/output_{:s}.txt'.format(java_code_group_path, code_name), 'w') as f:
+            result = subprocess.run(new_command, shell=True, timeout=timeout, stdout=f, stderr=subprocess.PIPE, text=True)
+            f.close()
+        
     except subprocess.TimeoutExpired:
-        return 'Timeout'
+        # read the output
+        with open('{:s}/output/output_{:s}.txt'.format(java_code_group_path, code_name), 'r') as f:
+            output = f.read()
+
+        return 'Timeout', output
 
     # read the output
     with open('{:s}/output/output_{:s}.txt'.format(java_code_group_path, code_name), 'r') as f:
         output = f.read()
-    return output
+    return 'Success', output
 
 
 def compare_outputs(output_1, output_2):

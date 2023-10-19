@@ -1,0 +1,11 @@
++++++
+hello
+++++o
+++ll+
+he+++
+java.lang.StringIndexOutOfBoundsException: begin -1, end 5, length 5 ERROR
+java.lang.StringIndexOutOfBoundsException: begin -2, end 5, length 5 ERROR
+java.lang.StringIndexOutOfBoundsException: begin -3, end 5, length 5 ERROR
+java.lang.StringIndexOutOfBoundsException: begin -4, end 5, length 5 ERROR
+java.lang.StringIndexOutOfBoundsException: begin -5, end 5, length 5 ERROR
+java.lang.StringIndexOutOfBoundsException: begin -6, end 5, length 5 ERROR
