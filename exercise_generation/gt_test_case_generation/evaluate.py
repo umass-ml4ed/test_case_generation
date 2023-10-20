@@ -4,6 +4,7 @@ For every problem, reads the test cases generated and evaluates them
 
 import os 
 import sys
+import random
 from tqdm import tqdm
 # import generate_compiler_code from previous directory 
 from utils import *
@@ -50,10 +51,21 @@ def get_groupwise_working_dict(df):
     grp_work_dict = defaultdict(list)
     for i, row in df.iterrows():
         grp_work_dict['({:d}, {:d})'.format(int(row['AssignmentID']), row['ProblemID'])].append((row['CodeStateID'], row['p']))
-    return grp_work_dict
+    
+    # sample 100 items randomly (with seed) from the dict for each group
+    grp_work_dict_sample = dict()
+    for grp, values in grp_work_dict.items():
+        if len(values) < 100:
+            grp_work_dict_sample[grp] = values
+        else:
+            grp_work_dict_sample[grp] = random.sample(values, 100)
+
+    return grp_work_dict_sample
 
 
 def main():
+    # set random seed
+    random.seed(37)
     # load data
     group_wise_data, code_dict, problem_dict, code_details_dict = load_data()
 
@@ -106,9 +118,7 @@ def main():
                 continue
         
         grp_wise_pred_scores['{:s}'.format(processed_group)] = valid_pred_scores
-        grp_wise_true_scores['{:s}'.format(processed_group)] = valid_true_scores
-
-        
+        grp_wise_true_scores['{:s}'.format(processed_group)] = valid_true_scores       
 
     total_score, grp_wise_scores = calculate_score(grp_wise_pred_scores, grp_wise_true_scores)
     print('total_score: ', total_score)
