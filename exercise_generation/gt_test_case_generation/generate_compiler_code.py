@@ -74,15 +74,19 @@ def get_complete_java_code(class_name, code, unit_test_case_function_code, main_
     complete_java_code += '}\n'
     return complete_java_code
 
-def extract_test_cases(group, trial, p):
+def extract_test_cases(group, trial, p_list):
     '''
     Reads test cases json and returns a list of test cases
     '''
     group_tuple = literal_eval(group)
-    with open('llm_output/{:d}_{:d}/t{:d}/{:d}.json'.format(group_tuple[0], group_tuple[1], trial, p), 'r') as f:
-        test_cases = json.load(f)
-    test_cases_list = list(test_cases.values())
-    return test_cases_list
+    all_test_cases = []
+    for p in p_list:
+        with open('llm_output/{:d}_{:d}/t{:d}/{:d}.json'.format(group_tuple[0], group_tuple[1], trial, p), 'r') as f:
+            test_cases = json.load(f)
+        test_cases_list = list(test_cases.values())
+        all_test_cases.extend(test_cases_list)
+    all_test_cases = list(set(all_test_cases))
+    return all_test_cases
 
 def parse_java_code(java_code):
     '''
@@ -137,6 +141,13 @@ def construct_java_code(test_cases, function_name, class_name, student_code, out
     return complete_java_code
 
 def procure_compiler_code(group, code, trial, p, output_type):
+    '''
+    group - tuple of assignment id and problem id
+    code - student code
+    trial - LLM trial number
+    p - number of correct cases (list)
+    output_type - output_type of the code
+    '''
     # extract function name
     function_name = extract_function_name(code)
     class_name = function_name.upper()

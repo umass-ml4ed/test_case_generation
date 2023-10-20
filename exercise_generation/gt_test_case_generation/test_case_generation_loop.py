@@ -7,6 +7,7 @@ import sys
 from prompt_llm import *
 from generate_compiler_code import *
 from get_compiler_feedback import *
+from utils import *
 
 
 def main():
@@ -18,21 +19,7 @@ def main():
     if os.path.exists('prompt_dump.txt'):
         os.remove('prompt_dump.txt')
 
-    ###### Load data ######
-    # 1. Code states data
-    with open('analyze_data/group_wise_code_states_id.json', 'r') as f:
-        group_wise_data = json.load(f)
-    # 2. Actual code data
-    code_states_df = pd.read_csv('../S19_All_Release_2_10_22/Data/CodeStates/CodeStates.csv')
-    # 3. Problem statement data
-    problem_df = pd.read_excel('../2nd CSEDM Data Challenge - Problem Prompts & Concepts Used.xlsx', sheet_name='Sheet1')
-    # 4. Code details
-    code_details_df = pd.read_excel('analyze_data/code_details.xlsx', sheet_name='Sheet1')
-
-    # Hash data  
-    code_dict = get_codes(code_states_df)
-    problem_dict = get_problems(problem_df)
-    code_details_dict = get_code_details(code_details_df)
+    group_wise_data, code_dict, problem_dict, code_details_dict = load_data()
 
     # testing on select group ids 
     # allow_groups = ['(439, 1)', '(439, 5)', '(492, 31)', '(492, 32)', '(494, 46)'] # Java Exception for (492, 32) # TODO: Handle run time exceptions
@@ -90,8 +77,8 @@ def main():
                             raise Exception('Error in parsing LLM response')
                     print('Generated Test Cases')
                     # TODO: Generate compiler code
-                    buggy_compiler_code = procure_compiler_code(group, code_info[0], trial, code_info[1], output_type)
-                    correct_compiler_code = procure_compiler_code(group, correct_code, trial, code_info[1], output_type)
+                    buggy_compiler_code = procure_compiler_code(group, code_info[0], trial, [code_info[1]], output_type)
+                    correct_compiler_code = procure_compiler_code(group, correct_code, trial, [code_info[1]], output_type)
                     print('Generated Compiler Code')
                     # save code
                     save_code(group, buggy_compiler_code, code_info[1])

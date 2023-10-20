@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 import openai
 from openai.error import RateLimitError, Timeout, APIError, ServiceUnavailableError
+from utils import *
 
 
 def set_api_key():
@@ -82,36 +83,6 @@ def save_llm_response(llm_response, raw_group, trial, p):
         return False 
     return True
 
-
-def get_codes(df):
-    '''
-    Converts df to dict
-    '''
-    code_dict = dict()
-    for i, row in df.iterrows():
-        code_dict[row['CodeStateID']] = row['Code']
-    return code_dict
-
-def get_problems(df):
-    '''
-    Converts df to dict
-    '''
-    problem_dict = dict()
-    for i, row in df.iterrows():
-        group = str((row['AssignmentID'], row['ProblemID']))
-        problem_dict[group] = row['Requirement']
-    return problem_dict
-
-def get_code_details(df):
-    '''
-    Converts df to dict
-    '''
-    code_details_dict = defaultdict(dict)
-    for i, row in df.iterrows():
-        group = str((row['AssignmentID'], row['ProblemID']))
-        code_details_dict[group]['Input'] = row['Input Type']
-        code_details_dict[group]['Output'] = row['Return Type']
-    return code_details_dict
 
 def wrap_java_code(code):
     '''

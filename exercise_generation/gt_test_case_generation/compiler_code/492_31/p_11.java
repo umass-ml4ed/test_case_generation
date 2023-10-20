@@ -23,9 +23,9 @@ System.out.println(repeatEnd("programming", 5));
 System.out.println(repeatEnd("java", 4));
 System.out.println(repeatEnd("test", 2));
 System.out.println(repeatEnd("code", 3));
-System.out.println(repeatEnd("hello world", 11));
-System.out.println(repeatEnd("abc", 2));
-System.out.println(repeatEnd("xyz", 0));
+System.out.println(repeatEnd("example", 1));
+System.out.println(repeatEnd("string", 6));
+System.out.println(repeatEnd("algorithm", 0));
 }
 
 public static void main(String []args){

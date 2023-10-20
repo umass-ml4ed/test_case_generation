@@ -29,21 +29,21 @@ return -999;
 }
 
 public void sum67_test(String []s){
-System.out.println(sum67(new int[]{1, 2, 3}));
-System.out.println(sum67(new int[]{4, 5, 6, 7}));
-System.out.println(sum67(new int[]{1, 2, 6, 7, 8}));
-System.out.println(sum67(new int[]{6, 7, 1, 2, 3, 6, 7, 4, 5}));
-System.out.println(sum67(new int[]{6, 7, 6, 7, 6, 7, 6, 7}));
-System.out.println(sum67(new int[]{1, 6, 7, 2, 6, 7, 3, 6, 7}));
-System.out.println(sum67(new int[]{1, 2, 3, 6, 7, 6, 7}));
-System.out.println(sum67(new int[]{6, 7, 6, 7, 6, 7, 6, 7, 6, 7}));
-System.out.println(sum67(new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
+System.out.println(sum67(new int[]{1, 2, 3, 4, 5}));
+System.out.println(sum67(new int[]{6, 7, 8, 9, 10}));
+System.out.println(sum67(new int[]{1, 6, 2, 7, 3, 4, 5}));
+System.out.println(sum67(new int[]{6, 7, 1, 2, 3, 4, 5}));
+System.out.println(sum67(new int[]{1, 2, 3, 6, 7, 8, 9, 10}));
 System.out.println(sum67(new int[]{6, 7, 8, 9, 10, 6, 7, 8, 9, 10}));
-System.out.println(sum67(new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 6, 7, 8, 9, 10}));
+System.out.println(sum67(new int[]{6, 7, 6, 7, 6, 7, 6, 7}));
+System.out.println(sum67(new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
 System.out.println(sum67(new int[]{6, 7, 8, 9, 10, 6, 7, 8, 9, 10, 6, 7, 8, 9, 10}));
+System.out.println(sum67(new int[]{6, 7, 6, 7, 6, 7, 6, 7, 6, 7}));
+System.out.println(sum67(new int[]{6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7}));
+System.out.println(sum67(new int[]{6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7}));
 System.out.println(sum67(new int[]{6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7}));
-System.out.println(sum67(new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7}));
-System.out.println(sum67(new int[]{6, 7, 8, 9, 10, 6, 7, 8, 9, 10, 6, 7, 8, 9, 10, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7}));
+System.out.println(sum67(new int[]{6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7}));
+System.out.println(sum67(new int[]{}));
 }
 
 public static void main(String []args){
