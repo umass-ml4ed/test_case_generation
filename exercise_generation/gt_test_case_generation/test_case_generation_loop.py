@@ -11,10 +11,16 @@ from utils import *
 
 
 def main():
+    # Precauction - create directories 
+    if not os.path.exists('llm_output'):
+        os.mkdir('llm_output')
+    if not os.path.exists('compiler_code'):
+        os.mkdir('compiler_code')
+
     # Set API key
     set_api_key()
     # Maximum Number of trails 
-    ITER_TRIALS = 3
+    ITER_TRIALS = 2
     # If prompt_dump.txt exists, delete it
     if os.path.exists('prompt_dump.txt'):
         os.remove('prompt_dump.txt')
@@ -33,8 +39,8 @@ def main():
 
     # Go over the data
     for group, code_values in group_wise_data.items():
-        if '502' not in group:
-            continue
+        # if '502' not in group:
+        #     continue
         try:
             # if group not in allow_groups:
             #     continue
@@ -58,12 +64,12 @@ def main():
                 for trial in range(1, ITER_TRIALS+1):
                     print('Trial: ', trial)
 
-                    # Logging prompt
-                    with open('prompt_dump.txt', 'a+') as f:
-                        f.write('Group: ' + group + '\n')
-                        f.write('p: ' + str(code_info[1]) + '\n')
-                        f.write('Trial: ' + str(trial) + '\n')
-                        f.write('Prompt: ' + str(prompt) + '\n')
+                    # # Logging prompt
+                    # with open('prompt_dump.txt', 'a+') as f:
+                    #     f.write('Group: ' + group + '\n')
+                    #     f.write('p: ' + str(code_info[1]) + '\n')
+                    #     f.write('Trial: ' + str(trial) + '\n')
+                    #     f.write('Prompt: ' + str(prompt) + '\n')
 
                     # TODO: Check if llm_response already exists (if yes, then skip)
                     llm_response = check_llm_response(group, trial, code_info[1])
@@ -71,7 +77,8 @@ def main():
                     if llm_response == None or force_repeate_llm:
                         print('Prompting LLM')
                         # TODO: prompt LLM to generate test case
-                        llm_response = chat_llm(model='gpt-3.5-turbo', messages = prompt)
+                        # llm_response = chat_llm(model='gpt-3.5-turbo', messages = prompt)
+                        llm_response = chat_llm(model='gpt-4', messages = prompt)
                         status = save_llm_response(llm_response, group, trial, code_info[1])
                         if not status:
                             raise Exception('Error in parsing LLM response')
@@ -96,13 +103,13 @@ def main():
                         # compare outputs
                         match_output = compare_outputs(output_1, output_2)
                         timeout_error = False
-                        print('Generated Output Comparison')
-                        print('Output of buggy code execution:\n', output_1)
-                        print('Output of correct code execution:\n', output_2)
-                        print('Output comparision:\n', match_output)
+                        # print('Generated Output Comparison')
+                        # print('Output of buggy code execution:\n', output_1)
+                        # print('Output of correct code execution:\n', output_2)
+                        # print('Output comparision:\n', match_output)
 
                     # Create the next (iterative) prompt for LLM
-                    new_message = create_next_prompt(output_1, output_2, match_output, code_info[1], q, timeout_error)
+                    new_message = create_next_prompt(output_1, output_2, match_output, code_info[1], q, timeout_error, trial+1)
                     new_openai_message = [{'role': 'assistant', 'content': llm_response}, {'role': 'user', 'content': new_message}]
                     prompt = prompt + new_openai_message
         except Exception as e:

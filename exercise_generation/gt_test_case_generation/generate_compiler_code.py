@@ -81,10 +81,14 @@ def extract_test_cases(group, trial, p_list):
     group_tuple = literal_eval(group)
     all_test_cases = []
     for p in p_list:
-        with open('llm_output/{:d}_{:d}/t{:d}/{:d}.json'.format(group_tuple[0], group_tuple[1], trial, p), 'r') as f:
-            test_cases = json.load(f)
-        test_cases_list = list(test_cases.values())
-        all_test_cases.extend(test_cases_list)
+        try:
+            with open('llm_output/{:d}_{:d}/t{:d}/{:d}.json'.format(group_tuple[0], group_tuple[1], trial, p), 'r') as f:
+                test_cases = json.load(f)
+            # NOTE: The first item is the explanation - test cases start from index 1.
+            test_cases_list = list(test_cases.values())[1:] 
+            all_test_cases.extend(test_cases_list)
+        except FileNotFoundError:
+            continue
     all_test_cases = list(set(all_test_cases))
     return all_test_cases
 

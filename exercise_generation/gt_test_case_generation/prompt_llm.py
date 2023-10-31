@@ -14,6 +14,7 @@ import numpy as np
 import openai
 from openai.error import RateLimitError, Timeout, APIError, ServiceUnavailableError
 from utils import *
+from tablify import *
 
 
 def set_api_key():
@@ -41,7 +42,7 @@ def chat_llm(model, messages):
             model=model,
             messages=messages,
             temperature=0.0,
-            max_tokens=2000,
+            max_tokens=1000,
         )
     except (RateLimitError, Timeout, APIError, ServiceUnavailableError) as exc:
         print(exc)
@@ -50,9 +51,9 @@ def chat_llm(model, messages):
 
     llm_response = response['choices'][0]['message']['content']
 
-    # save into temporary file for inspection 
-    with open('temp_llm_response.txt', 'w') as outfile:
-        print(llm_response, file=outfile)
+    # # save into temporary file for inspection 
+    # with open('temp_llm_response.txt', 'w') as outfile:
+    #     print(llm_response, file=outfile)
 
     return llm_response
 
@@ -80,6 +81,7 @@ def save_llm_response(llm_response, raw_group, trial, p):
         with open('llm_output/{:s}/t{:d}/{:d}.json'.format(group, trial, p), 'w') as f:
             json.dump(llm_response_json, f)
     except Exception as e:
+        print(llm_response)
         return False 
     return True
 
@@ -101,49 +103,47 @@ def create_initial_prompts(problem, correct_code, expt_code, q, input_type):
     for code, p in expt_code:
         prompt =  'Problem: ' + problem + '\n\n'
         prompt += 'Code Input Parameters: ' + input_type + '\n\n\n'
-        prompt += 'Partially Correct Code:\n' + wrap_java_code(code) + '\n\n'
+        prompt += '\Buggy code:\n' + wrap_java_code(code) + '\n\n'
         prompt += 'Perfect Code:\n' + wrap_java_code(correct_code) + '\n\n'
-        system = 'You are a Programming Expert. Your task is to generate test cases for the following problem and the code pair satisfying the following conditions:\n\n'
-        system += 'Conditions: \n'
-        system += '1. Total Number of test cases = {:d}\n'.format(q)
-        system += '2. Fraction of test cases the partially correct code passes = {:d}/{:d}\n'.format(p, q)
-        system += '3. Fraction of test cases the perfect code passes = {:d}/{:d}\n\n'.format(q, q)
+        system = 'You are a Programming Expert. Your task is to generate diverse test cases for the following problem and the code pair (buggy code and perfect code) satisfying the following conditions:\n\n'
+        system += 'Conditions: \n' 
+        system += '1. Total Number of test cases to generate = {:d}\n'.format(q)
+        system += '2. Fraction of generated test cases that the buggy code should pass (p/q) = {:d}/{:d}\n'.format(p, q)
+        system += '3. Fraction of generated test cases that the perfect code should pass (p/q) = {:d}/{:d}\n\n'.format(q, q)
         system += 'Important: Generate test cases in a JSON format. '
         system += 'The key of the JSON dictionary is the test case number and the value is the test case itself as a string, a VALID JAVA code that can be directly fed as an argument to the function without any change.\n\n'
-        system += 'Example: Code Input Parameters - int[] nums, String[] names. Ouptut: Test Case Dictionary:  {"test_case_1": "new int[]{1, 2, 3}, new String[]{"String1", "String2", "String3"}", "test_case_2": "new int[]{4, 5, 6}, new String[]{"NewString1", "NewString2", "NewString3"}"}'
-        prompt += '\n\nTest Case Dictionary:'
+        system += 'The first item of the dictionary is an explanation/ rationale of generating/editing test cases for the given problem and code pair. DO NOT MAKE SYNTAX ERRORS IN THE OUTPUT JSON DICTIONARY.'
+        system += 'Example: Code Input Parameters - int[] nums, String[] names. Output: Test Case Dictionary:  {"Explanation":"The bug in the buggy code is <write about bug here>. Generated Test cases <mention numbers> (p_dash/q) should pass the buggy code.", "test_case_1": "new int[]{1, 2, 3}, new String[]{"String1", "String2", "String3"}", "test_case_2": "new int[]{4, 5, 6}, new String[]{"NewString1", "NewString2", "NewString3"}"}'
+        system += 'Very Important: The JSON dictionary has to be syntatically valid. Please do not miss a comma after the explanation (before starting the test cases).'
+        prompt += 'HINT: Analyze the buggy code to identify the bug (you can use the problem statement and the perfect code for comparison).'
+        prompt += '\n\nTest Case Dictionary Generation 1:'
         message = [{'role': 'system', 'content': system}, {'role': 'user', 'content': prompt}]
         all_prompts.append(message)
     return all_prompts
 
-def create_next_prompt(output_1, output_2, match_output, p, q, timeout_error):
+def create_next_prompt(output_1, output_2, match_output, p, q, timeout_error, trial):
     '''
     Creates follow-up prompt for the LLM
     '''
+    test_case_string_list = ['test_case_{:d}'.format(i+1) for i in range(len(output_1))] # context lenght exceeded
     if not timeout_error:
-        prompt = 'Shown below is the execution result of the partially correct code and the perfect code on the test cases generated by you. '
-        prompt += '\n\n############'
-        prompt += '\nPartially Correct Code Results\n'
-        prompt += output_1
-        prompt += '\n\n############'
-        prompt += '\nPerfect Code Results\n'
-        prompt += output_2
-        prompt += '\n\n############'
-        prompt += '\nOutput Comparison: For every test case True means output match and False means outputs do not match\n'
-        prompt += str(match_output)
-        prompt += '\n Remember the goal is to generate {:d} test cases such that {:d}/{:d} pass the partially correct code (have True output match)'.format(q, p, q)
-        prompt += '\n\nTest Case Dictionary:'
+        new_match_output = ['Yes' if check else 'No' for check in match_output]
+        table = create_table(output_1, output_2, new_match_output)
+        prompt = 'COMPILER FEEDBACK: Results Table for every test case: (Yes denotes that the code pair output match, No denotes output do not match)'
+        prompt += table
+        prompt += '\nREAL EXPECTED Test Case Result Matching (p/q): {:d}/{:d}'.format(p, q)
+        prompt += '\nYOUR PREDICTED Test Case Result Matching (p_dash/q): {:d}/{:d}'.format(new_match_output.count('Yes'), q)
+        prompt += '\nVERY VERY IMPORTANT: MODIFY the test cases according to the FEEDBACK (such that YOUR PREDICTED TEST CASES (p_dash/q) satisfy the REAL EXPECTED Test Case Matching (p/q)). Your Explanation should exactly pin-point the test cases that have been changed as compared to the previous generation of test cases.'
+        prompt += 'HINT: Analyze the COMPILER FEEDBACK and understand the bug in the buggy code better such that the new generated test cases satisfy the real matching (p/q)'
+        prompt += '\n\n(Improved) Test Case Dictionary Generation {:d}:'.format(trial)
     else:
-        prompt = 'Shown below is the execution result of the partially correct code and the perfect code on the test cases generated by you. '
-        prompt += '\n\n############'
-        prompt += '\nPartially Correct Code Results\n'
-        prompt += output_1
-        prompt += '\n\n############'
-        prompt += '\nPerfect Code Results\n'
-        prompt += output_2
-        prompt += '\n\n############'
-        prompt += '\nThere is a timeout error while executing this code (probably because of an infinite loop). This generally happens when you provide extreme inputs like an empty string, huge positive/ negative numbers, etc. Analyze the test case where this problem occured and rewrite the test cases. '
-        prompt += '\n\nTest Case Dictionary:'
+        table = create_table(output_1, output_2, None)
+        prompt = 'Results Table for every test case: (Yes denotes output match, No denotes output do not match)'
+        prompt += table       
+        prompt += '\nThere is a timeout error (because of Java Exception) while executing the current set of test cases (probably because of an infinite loop). This generally happens when you provide extreme inputs like an empty string, huge positive/ negative numbers, etc. Analyze the test case where this problem occured and rewrite the test cases. '
+        prompt += '\nREAL EXPECTED Test Case Result Matching: {:d}/{:d}'.format(p, q)
+        prompt += '\nVERY VERY IMPORTANT: MODIFY the test cases such that YOUR PREDICTED TEST CASES satisfy the REAL EXPECTED Test Case Matching. Your Explanation should exactly pin-point the test cases that have been changed as compared to the previous generation of test cases.'
+        prompt += '\n\n(Improved) Test Case Dictionary Generation {:d}:'.format(trial)
     return prompt
 
 
