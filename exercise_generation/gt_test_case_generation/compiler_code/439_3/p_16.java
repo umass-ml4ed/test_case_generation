@@ -16,22 +16,21 @@ return false;
 }
 
 public void in1To10_test(String []s){
+System.out.println(in1To10(5, false));
 System.out.println(in1To10(11, true));
-System.out.println(in1To10(2, false));
-System.out.println(in1To10(3, false));
+System.out.println(in1To10(6, false));
+System.out.println(in1To10(0, false));
 System.out.println(in1To10(1, true));
 System.out.println(in1To10(0, true));
-System.out.println(in1To10(100, true));
-System.out.println(in1To10(20, true));
-System.out.println(in1To10(1, false));
+System.out.println(in1To10(11, false));
 System.out.println(in1To10(5, true));
+System.out.println(in1To10(1, false));
+System.out.println(in1To10(8, false));
 System.out.println(in1To10(10, true));
-System.out.println(in1To10(4, false));
+System.out.println(in1To10(7, false));
+System.out.println(in1To10(2, true));
 System.out.println(in1To10(9, false));
 System.out.println(in1To10(10, false));
-System.out.println(in1To10(15, true));
-System.out.println(in1To10(-5, true));
-System.out.println(in1To10(-1, true));
 }
 
 public static void main(String []args){

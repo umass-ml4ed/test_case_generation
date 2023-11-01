@@ -1,0 +1,12 @@
+abcdeabcde
+abcdeac
+java.lang.StringIndexOutOfBoundsException: begin 0, end 2, length 0 ERROR
+ab
+
+abcdeabce
+abcdeabcd
+
+abcdeabc
+lloHe
+a
+cdeab

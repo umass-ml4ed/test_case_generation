@@ -32,6 +32,8 @@ def main():
     # allow_groups = ['(492, 32)', '(494, 46)']
     # allow_groups = ['(492, 32)']
 
+    allow_groups = ['(439, 236)', '(492, 128)', '(494, 46)', '(494, 104)', '(502, 70)', '(502, 71)']
+
     error_groups = []
 
     # Force repeat new generation of test cases even if the data is already present
@@ -42,8 +44,8 @@ def main():
         # if '502' not in group:
         #     continue
         try:
-            # if group not in allow_groups:
-            #     continue
+            if group not in allow_groups:
+                continue
 
             print('Group: ', group)
             problem = problem_dict[group]
@@ -62,56 +64,65 @@ def main():
                 print('p:  {:d}'.format(code_info[1]))
 
                 for trial in range(1, ITER_TRIALS+1):
-                    print('Trial: ', trial)
+                    try:
+                        print('Trial: ', trial)
 
-                    # # Logging prompt
-                    # with open('prompt_dump.txt', 'a+') as f:
-                    #     f.write('Group: ' + group + '\n')
-                    #     f.write('p: ' + str(code_info[1]) + '\n')
-                    #     f.write('Trial: ' + str(trial) + '\n')
-                    #     f.write('Prompt: ' + str(prompt) + '\n')
+                        # # Logging prompt
+                        # with open('prompt_dump.txt', 'a+') as f:
+                        #     f.write('Group: ' + group + '\n')
+                        #     f.write('p: ' + str(code_info[1]) + '\n')
+                        #     f.write('Trial: ' + str(trial) + '\n')
+                        #     f.write('Prompt: ' + str(prompt) + '\n')
 
-                    # TODO: Check if llm_response already exists (if yes, then skip)
-                    llm_response = check_llm_response(group, trial, code_info[1])
+                        # TODO: Check if llm_response already exists (if yes, then skip)
+                        llm_response = check_llm_response(group, trial, code_info[1])
 
-                    if llm_response == None or force_repeate_llm:
-                        print('Prompting LLM')
-                        # TODO: prompt LLM to generate test case
-                        # llm_response = chat_llm(model='gpt-3.5-turbo', messages = prompt)
-                        llm_response = chat_llm(model='gpt-4', messages = prompt)
-                        status = save_llm_response(llm_response, group, trial, code_info[1])
-                        if not status:
-                            raise Exception('Error in parsing LLM response')
-                    print('Generated Test Cases')
-                    # TODO: Generate compiler code
-                    buggy_compiler_code = procure_compiler_code(group, code_info[0], trial, [code_info[1]], output_type)
-                    correct_compiler_code = procure_compiler_code(group, correct_code, trial, [code_info[1]], output_type)
-                    print('Generated Compiler Code')
-                    # save code
-                    save_code(group, buggy_compiler_code, code_info[1])
-                    save_code(group, correct_compiler_code, q)
-                    # execute code and get feedback
-                    # Check timeout error (if there is no output for more than 10 s then break)
-                    exec_message_1, output_1 = execute_and_store_subprocess(group, 'p_{:d}'.format(code_info[1]))
-                    exec_message_2, output_2 = execute_and_store_subprocess(group, 'p_{:d}'.format(q))
-                    # Execution check for timeout
-                    if exec_message_1 == 'Timeout' or exec_message_2 == 'Timeout':
-                        print('Timeout error')
-                        timeout_error = True
-                        match_output = None
-                    else:
-                        # compare outputs
-                        match_output = compare_outputs(output_1, output_2)
-                        timeout_error = False
-                        # print('Generated Output Comparison')
-                        # print('Output of buggy code execution:\n', output_1)
-                        # print('Output of correct code execution:\n', output_2)
-                        # print('Output comparision:\n', match_output)
+                        if llm_response == None or force_repeate_llm:
+                            print('Prompting LLM')
+                            # TODO: prompt LLM to generate test case
+                            # llm_response = chat_llm(model='gpt-3.5-turbo', messages = prompt)
+                            llm_response = chat_llm(model='gpt-4', messages = prompt)
+                            status = save_llm_response(llm_response, group, trial, code_info[1])
+                            if not status:
+                                raise Exception('LLMParsingError')
+                        print('Generated Test Cases')
+                        # TODO: Generate compiler code
+                        buggy_compiler_code = procure_compiler_code(group, code_info[0], trial, [code_info[1]], output_type)
+                        correct_compiler_code = procure_compiler_code(group, correct_code, trial, [code_info[1]], output_type)
+                        print('Generated Compiler Code')
+                        # save code
+                        save_code(group, buggy_compiler_code, code_info[1])
+                        save_code(group, correct_compiler_code, q)
+                        # execute code and get feedback
+                        # Check timeout error (if there is no output for more than 10 s then break)
+                        exec_message_1, output_1 = execute_and_store_subprocess(group, 'p_{:d}'.format(code_info[1]))
+                        exec_message_2, output_2 = execute_and_store_subprocess(group, 'p_{:d}'.format(q))
+                        # Execution check for timeout
+                        if exec_message_1 == 'Timeout' or exec_message_2 == 'Timeout':
+                            print('Timeout error')
+                            timeout_error = True
+                            match_output = None
+                        else:
+                            # compare outputs
+                            match_output = compare_outputs(output_1, output_2)
+                            timeout_error = False
+                            # print('Generated Output Comparison')
+                            # print('Output of buggy code execution:\n', output_1)
+                            # print('Output of correct code execution:\n', output_2)
+                            # print('Output comparision:\n', match_output)
 
-                    # Create the next (iterative) prompt for LLM
-                    new_message = create_next_prompt(output_1, output_2, match_output, code_info[1], q, timeout_error, trial+1)
-                    new_openai_message = [{'role': 'assistant', 'content': llm_response}, {'role': 'user', 'content': new_message}]
-                    prompt = prompt + new_openai_message
+                        # Create the next (iterative) prompt for LLM
+                        new_message = create_next_prompt(output_1, output_2, match_output, code_info[1], q, timeout_error, trial+1)
+                        new_openai_message = [{'role': 'assistant', 'content': llm_response}, {'role': 'user', 'content': new_message}]
+                        prompt = prompt + new_openai_message
+                    except Exception as e: 
+                        if type(e).__name__ == 'LLMParsingError':
+                            new_message = 'Your previously generated test cases could not be parsed. Either because there was a synatx error in the test cases, the output JSON dictionary or the test cases ARE TOO LONG and exceed the output length. Analyze your previous response and generate a new set of test cases.\nTest Case Dictionary:'
+                            new_openai_message = [{'role': 'assistant', 'content': llm_response}, {'role': 'user', 'content': new_message}]
+                            prompt = prompt + new_openai_message
+                        else:
+                            break
+
         except Exception as e:
             error_groups.append((group, str(e)))
         
