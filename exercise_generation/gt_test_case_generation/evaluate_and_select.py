@@ -13,6 +13,7 @@ from generate_compiler_code import *
 from get_compiler_feedback import *
 import numpy as np
 import json
+import argparse
 
 def print_codes(correct_compiler_code, buggy_compiler_code):
     print('#############################################\n')
@@ -89,8 +90,20 @@ def get_selective_groupwise_working_dict(df, m=5):
         count_dict[count_prefix] += 1
     return grp_work_dict
 
+def add_params():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m', '--m', type=int, default=5, help='Number of code examples to sample per student per problem.')
+    params = parser.parse_args()
+    return params 
+
+
 
 def main():
+    args = add_params()
+
+    # print m 
+    print('Using m: {:d}'.format(args.m))
+
     # set random seed
     random.seed(37)
     # load data
@@ -99,7 +112,7 @@ def main():
     # load all working data
     working_df = pd.read_csv('analyze_data/working_data.csv')
     # NOTE: Change to m = 5
-    work_code_p_student_dict = get_selective_groupwise_working_dict(working_df, m=1)
+    work_code_p_student_dict = get_selective_groupwise_working_dict(working_df, m=args.m)
     print('Loaded Working data')
 
 
@@ -153,16 +166,9 @@ def main():
                 continue
             # store valid code id
             valid_code_ids[raw_group].append((code_id, p))
-
-            # NOTE: Remove this
-            ctr += 1
-            if ctr > 5:
-                break
         
         grp_wise_pred_scores['{:s}'.format(processed_group)] = valid_pred_scores
         grp_wise_true_scores['{:s}'.format(processed_group)] = valid_true_scores       
-
-        # break # NOTE: Remove this
 
     grp_wise_scores, grp_wise_p_student_scores = calculate_score(grp_wise_pred_scores, grp_wise_true_scores)
 
@@ -171,16 +177,17 @@ def main():
     #     json.dump(valid_code_ids, outfile, indent=6)
 
     # evaluation 
-    if not os.path.exists('evaluation'):
-        os.mkdir('evaluation')
+    save_path = 'evaluation_{:d}'.format(args.m)
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
 
     # Dump grp_wise_scores
-    with open('evaluation/group_wise_scores.json', 'w') as outfile:
+    with open('{:s}/group_wise_scores.json'.format(save_path), 'w') as outfile:
         json.dump(grp_wise_scores, outfile, indent=6)
     
 
     # Dump grp_wise_scores, grp_wise_p_student_scores
-    with open('evaluation/grp_wise_p_student_scores.json', 'w') as outfile:
+    with open('{:s}/grp_wise_p_student_scores.json'.format(save_path), 'w') as outfile:
         json.dump(grp_wise_p_student_scores, outfile, indent=6)
 
 
