@@ -62,7 +62,20 @@ def execute_and_store_subprocess(raw_group, code_name):
         # read the output
         with open('{:s}/output/output_{:s}.txt'.format(java_code_group_path, code_name), 'r') as f:
             output = f.read()
-
+        return 'Timeout', output
+    
+    except subprocess.CalledProcessError as e:
+        print("Java process returned non-zero exit status:", e.returncode)
+        # read the output
+        with open('{:s}/output/output_{:s}.txt'.format(java_code_group_path, code_name), 'r') as f:
+            output = f.read()
+        return 'Timeout', output
+    
+    except Exception as e:
+        print("An error occurred:", e)
+        # read the output
+        with open('{:s}/output/output_{:s}.txt'.format(java_code_group_path, code_name), 'r') as f:
+            output = f.read()
         return 'Timeout', output
 
     # read the output

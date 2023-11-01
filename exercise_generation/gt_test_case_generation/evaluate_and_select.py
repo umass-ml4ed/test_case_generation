@@ -51,7 +51,7 @@ def calculate_score(grp_wise_pred_scores, grp_wise_true_scores):
             grp_wise_p_student_scores[grp][p_sub_id] = diff
             all_scores.extend(diff)
         
-        grp_wise_scores[grp] = np.mean(all_scores)
+        grp_wise_scores[grp] = np.mean(all_scores) # gives nan when all_scores is empty - pred_score_p_student is empty
 
     return grp_wise_scores, grp_wise_p_student_scores 
 
@@ -93,13 +93,24 @@ def get_selective_groupwise_working_dict(df, m=5):
 def add_params():
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--m', type=int, default=5, help='Number of code examples to sample per student per problem.')
+    parser.add_argument('-g', '--group', type=int, default=439, help='Assignment number for the evaluation experiment.')
+    parser.add_argument('-ap', '--all_p', action=argparse.BooleanOptionalAction, help='Whether to choose all ps for the problem.')
+    parser.add_argument('-cl', '--chosen_list', action=argparse.BooleanOptionalAction, help='Whether to work only in the chosen list.')
     params = parser.parse_args()
     return params 
 
+def check_and_create_dir(dir_path):
+    '''
+    Creats a directory if it does not already exist. 
+    '''
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)
 
 
 def main():
     args = add_params()
+
+    chosen_list = ['(439, 1)', '(439, 13)', '(439, 235)', '(487, 17)', '(492, 36)', '(502, 57)']
 
     # print m 
     print('Using m: {:d}'.format(args.m))
@@ -121,7 +132,22 @@ def main():
     grp_wise_pred_scores, grp_wise_true_scores = dict(), dict()
     for processed_group in os.listdir(compiler_code_path):
         raw_group = "({:s})".format(processed_group.replace('_', ', ')) # convert to raw group
+        
+        assignment_id = raw_group.split(',')[0].strip('() ')
+
+        # if not assignment id then continue 
+        if assignment_id != str(args.group):
+            continue
+
+        if args.chosen_list and raw_group not in chosen_list:
+            continue
+
         print('Group: ', raw_group)
+
+        # (492, 128)
+        if raw_group == '(492, 128)':
+            continue
+
         # Input and Output of the problem 
         input_type, output_type = code_details_dict[raw_group]['Input'], code_details_dict[raw_group]['Output']
 
@@ -143,8 +169,8 @@ def main():
         # iterate over all working (codes, p) for this group
         ctr = 0
         for code_id, p, student_id in tqdm(work_code_p_student_dict[raw_group], total=len(work_code_p_student_dict[raw_group])):
-            # TODO: Check if p is in the actual p_list
-            if p not in p_list:
+            # TODO: Check if p is in the actual p_list (if all_p is not turned on)
+            if p not in p_list and not args.all_p:
                 continue
             # for code_id, p in zip(group_code_info['code_ids'][:-1], group_code_info['p'][:-1]):
             try:
@@ -158,8 +184,8 @@ def main():
                 if exec_message_1 == 'Timeout' or exec_message_2 == 'Timeout':
                     continue 
                 score = get_score(output_1, output_2)
-                if score == -1:
-                    continue
+                # if score == -1:
+                #     continue
                 valid_pred_scores['{:d}, {:s}'.format(p, student_id)].append(score)
                 valid_true_scores['{:d}, {:s}'.format(p, student_id)].append(p/q)
             except Exception as e:
@@ -168,7 +194,7 @@ def main():
             valid_code_ids[raw_group].append((code_id, p))
         
         grp_wise_pred_scores['{:s}'.format(processed_group)] = valid_pred_scores
-        grp_wise_true_scores['{:s}'.format(processed_group)] = valid_true_scores       
+        grp_wise_true_scores['{:s}'.format(processed_group)] = valid_true_scores  
 
     grp_wise_scores, grp_wise_p_student_scores = calculate_score(grp_wise_pred_scores, grp_wise_true_scores)
 
@@ -177,9 +203,12 @@ def main():
     #     json.dump(valid_code_ids, outfile, indent=6)
 
     # evaluation 
-    save_path = 'evaluation_{:d}'.format(args.m)
-    if not os.path.exists(save_path):
-        os.mkdir(save_path)
+
+    # create saving directories
+    main_path = 'evaluation_{:d}'.format(args.m)
+    save_path = os.path.join(main_path, str(args.group))
+    check_and_create_dir(main_path)
+    check_and_create_dir(save_path)    
 
     # Dump grp_wise_scores
     with open('{:s}/group_wise_scores.json'.format(save_path), 'w') as outfile:
