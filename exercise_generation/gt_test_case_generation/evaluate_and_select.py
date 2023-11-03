@@ -45,10 +45,10 @@ def calculate_score(grp_wise_pred_scores, grp_wise_true_scores):
         all_scores = []
         pred_score_p_student = grp_wise_pred_scores[grp]
         true_score_p_student = grp_wise_true_scores[grp]
-        for p_sub_id, score_list in pred_score_p_student.items():
-            true_score_list = true_score_p_student[p_sub_id]
+        for p_code_id_sub_id, score_list in pred_score_p_student.items():
+            true_score_list = true_score_p_student[p_code_id_sub_id]
             diff = np.abs(np.array(score_list) - np.array(true_score_list)).tolist()
-            grp_wise_p_student_scores[grp][p_sub_id] = diff
+            grp_wise_p_student_scores[grp][p_code_id_sub_id] = diff
             all_scores.extend(diff)
         
         grp_wise_scores[grp] = np.mean(all_scores) # gives nan when all_scores is empty - pred_score_p_student is empty
@@ -186,8 +186,8 @@ def main():
                 score = get_score(output_1, output_2)
                 # if score == -1:
                 #     continue
-                valid_pred_scores['{:d}, {:s}'.format(p, student_id)].append(score)
-                valid_true_scores['{:d}, {:s}'.format(p, student_id)].append(p/q)
+                valid_pred_scores['{:d}, {:s}, {:s}'.format(p, code_id, student_id)].append(score)
+                valid_true_scores['{:d}, {:s}, {:s}'.format(p, code_id, student_id)].append(p/q)
             except Exception as e:
                 continue
             # store valid code id
