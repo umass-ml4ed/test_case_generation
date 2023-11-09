@@ -48,6 +48,12 @@ def calculate_score(grp_wise_pred_scores, grp_wise_true_scores):
         for p_code_id_sub_id, score_list in pred_score_p_student.items():
             true_score_list = true_score_p_student[p_code_id_sub_id]
             diff = np.abs(np.array(score_list) - np.array(true_score_list)).tolist()
+            if diff[0] > 1:
+                print('Group: ', grp)
+                print('p_code_id_sub_id: ', p_code_id_sub_id)
+                print('Predicted Score List: ', score_list)
+                print('True Score List:', true_score_list)
+                sys.exit(0)
             grp_wise_p_student_scores[grp][p_code_id_sub_id] = diff
             all_scores.extend(diff)
         
@@ -96,6 +102,7 @@ def add_params():
     parser.add_argument('-g', '--group', type=int, default=439, help='Assignment number for the evaluation experiment.')
     parser.add_argument('-ap', '--all_p', action=argparse.BooleanOptionalAction, help='Whether to choose all ps for the problem.')
     parser.add_argument('-cl', '--chosen_list', action=argparse.BooleanOptionalAction, help='Whether to work only in the chosen list.')
+    parser.add_argument('-sd', '--save_dir', type=str, default="full_evaluation", help="Directory for saving results")
     params = parser.parse_args()
     return params 
 
@@ -110,7 +117,9 @@ def check_and_create_dir(dir_path):
 def main():
     args = add_params()
 
-    chosen_list = ['(439, 1)', '(439, 13)', '(439, 235)', '(487, 17)', '(492, 36)', '(502, 57)']
+    chosen_list_1 = ['(439, 1)', '(439, 13)', '(439, 235)', '(487, 17)', '(492, 36)', '(502, 57)']
+    chosen_list_2 = ['(492, 32)', '(492, 34)', '(494, 46)', '(494, 107)', '(502, 45)', '(502, 56)']
+    chosen_list = chosen_list_1 + chosen_list_2
 
     # print m 
     print('Using m: {:d}'.format(args.m))
@@ -138,8 +147,14 @@ def main():
         # if not assignment id then continue 
         if assignment_id != str(args.group):
             continue
-
+        
+        # skipping everything other than the chosen_list
         if args.chosen_list and raw_group not in chosen_list:
+            continue
+
+
+        # skipping the chosen list itself
+        if not args.chosen_list and raw_group in chosen_list:
             continue
 
         print('Group: ', raw_group)
@@ -205,7 +220,7 @@ def main():
     # evaluation 
 
     # create saving directories
-    main_path = 'evaluation_{:d}'.format(args.m)
+    main_path = '{:s}_{:d}'.format(args.save_dir, args.m)
     save_path = os.path.join(main_path, str(args.group))
     check_and_create_dir(main_path)
     check_and_create_dir(save_path)    
