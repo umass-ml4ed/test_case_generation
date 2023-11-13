@@ -48,12 +48,6 @@ def calculate_score(grp_wise_pred_scores, grp_wise_true_scores):
         for p_code_id_sub_id, score_list in pred_score_p_student.items():
             true_score_list = true_score_p_student[p_code_id_sub_id]
             diff = np.abs(np.array(score_list) - np.array(true_score_list)).tolist()
-            if diff[0] > 1:
-                print('Group: ', grp)
-                print('p_code_id_sub_id: ', p_code_id_sub_id)
-                print('Predicted Score List: ', score_list)
-                print('True Score List:', true_score_list)
-                sys.exit(0)
             grp_wise_p_student_scores[grp][p_code_id_sub_id] = diff
             all_scores.extend(diff)
         
@@ -102,6 +96,7 @@ def add_params():
     parser.add_argument('-g', '--group', type=int, default=439, help='Assignment number for the evaluation experiment.')
     parser.add_argument('-ap', '--all_p', action=argparse.BooleanOptionalAction, help='Whether to choose all ps for the problem.')
     parser.add_argument('-cl', '--chosen_list', action=argparse.BooleanOptionalAction, help='Whether to work only in the chosen list.')
+    parser.add_argument('-db', '--debug', action=argparse.BooleanOptionalAction, help='For debugging - only on 5 samples')
     parser.add_argument('-sd', '--save_dir', type=str, default="full_evaluation", help="Directory for saving results")
     params = parser.parse_args()
     return params 
@@ -120,6 +115,10 @@ def main():
     chosen_list_1 = ['(439, 1)', '(439, 13)', '(439, 235)', '(487, 17)', '(492, 36)', '(502, 57)']
     chosen_list_2 = ['(492, 32)', '(492, 34)', '(494, 46)', '(494, 107)', '(502, 45)', '(502, 56)']
     chosen_list = chosen_list_1 + chosen_list_2
+
+    # Debug Status
+    if args.debug:
+        print('##### Debug Mode On #####')
 
     # print m 
     print('Using m: {:d}'.format(args.m))
@@ -184,6 +183,8 @@ def main():
         # iterate over all working (codes, p) for this group
         ctr = 0
         for code_id, p, student_id in tqdm(work_code_p_student_dict[raw_group], total=len(work_code_p_student_dict[raw_group])):
+            if args.debug and ctr == 5:
+                break
             # TODO: Check if p is in the actual p_list (if all_p is not turned on)
             if p not in p_list and not args.all_p:
                 continue
@@ -207,9 +208,15 @@ def main():
                 continue
             # store valid code id
             valid_code_ids[raw_group].append((code_id, p))
+
+            # update counter
+            ctr += 1
         
         grp_wise_pred_scores['{:s}'.format(processed_group)] = valid_pred_scores
-        grp_wise_true_scores['{:s}'.format(processed_group)] = valid_true_scores  
+        grp_wise_true_scores['{:s}'.format(processed_group)] = valid_true_scores
+
+        if args.debug:
+            break  
 
     grp_wise_scores, grp_wise_p_student_scores = calculate_score(grp_wise_pred_scores, grp_wise_true_scores)
 
