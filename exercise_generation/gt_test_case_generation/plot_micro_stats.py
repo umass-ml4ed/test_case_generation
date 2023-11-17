@@ -44,7 +44,7 @@ def scatter_and_bar_plot(x_and_score_values, x_and_length_values, prob, save_dir
 
     # Plotting the scatter plot on the left y-axis (ax1)
     ax1.scatter(x_values, error_values, color='darkblue', label='Mean Error')
-    ax1.set_xlabel('Code Score')
+    ax1.set_xlabel('Ground Truth Code Score')
     ax1.set_ylabel('Mean Error', color='darkblue')
     ax1.tick_params(axis='y', labelcolor='darkblue')
 
@@ -62,7 +62,7 @@ def scatter_and_bar_plot(x_and_score_values, x_and_length_values, prob, save_dir
     ax2.legend(lines + lines2, labels + labels2, loc='upper left')
 
     # save figure
-    plt.savefig(os.path.join(save_dir, '{:s}.png'.format(prob)))
+    plt.savefig(os.path.join(save_dir, '{:s}.png'.format(prob)), dpi=1000)
 
     # Close the figure to avoid overlapping plots
     plt.close()
