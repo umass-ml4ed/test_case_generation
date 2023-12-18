@@ -4,7 +4,7 @@ from collections import defaultdict
 from statistics import mean, variance
 
 def main():
-    dirs = ['evaluation_5', 'new_evaluation_5', 'full_evaluation_5'] 
+    dirs = ['full_evaluation_5'] 
     all_scores = defaultdict(list)
     for dir in dirs:
         path = os.path.join(dir, 'consolidated_new_scores.json')
