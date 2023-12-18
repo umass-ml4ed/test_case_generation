@@ -1,3 +1,9 @@
+'''
+Plots for the paper
+1) Number of codes versus pass value (p)
+2. Error versus pass value (p)
+'''
+
 import pandas as pd
 import os
 import json 
@@ -92,13 +98,6 @@ def plot_data(score_dist, prb_q_dict):
             # fill x_and_length_values
             x_and_length_values['x'].append(score)
             x_and_length_values['y'].append(len(score_lst))
-        # TODO: plot the data 
-        # Plotting the data
-        # Create a new figure for each iteration
-        # print(prob_wise_avg_score[prob].keys())
-        # print(prob_wise_avg_score[prob].values())
-        # print(x_and_score_values['x'])
-        # print(x_and_score_values['y'])
 
         # Plot x_and_score_values
         scatter_and_bar_plot(x_and_score_values, x_and_length_values, prob, save_dir)
@@ -114,7 +113,7 @@ def main():
     q_dict = get_q_dict(working_df)
 
     # iterate through data
-    main_dir = 'new_evaluation_5'
+    main_dir = 'full_evaluation_5'
     score_dist = dict()
     prb_q_dict = dict()
     for assgn in os.listdir(main_dir):
