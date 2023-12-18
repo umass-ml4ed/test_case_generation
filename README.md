@@ -35,6 +35,10 @@ python choose_data.py
 python test_case_generation_loop.py
 ```
 
+This code produces two outputs:
+* ```llm_output``` - Directory containing the output of the LLM (bug explanation and corresponding test cases) for selected student codes for every iteration of refinement for every problem. 
+* ```compiler_code``` - Directory containing the automatically constructed Java code for testing the generated test cases for the original student buggy code for every problem.
+
 ## Evaluation 
 
 Navigate to the directory and execute the codes:
@@ -46,3 +50,7 @@ python adjust_group_scores.py
 python average_grp_wise_scores.py
 python plot_micro_stats.py
 ```
+
+This code produces two outputs: 
+* ```full_evaluation_5``` - contains the error for every problem of all assignment across for all students. 
+* ```plots``` - contains the plots used in our paper. 
