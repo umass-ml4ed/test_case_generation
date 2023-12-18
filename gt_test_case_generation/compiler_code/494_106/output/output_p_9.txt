@@ -1,0 +1,16 @@
+true
+true
+true
+false
+true
+true
+false
+true
+true
+true
+true
+java.lang.ArrayIndexOutOfBoundsException: Index 7 out of bounds for length 7 false
+false
+false
+false
+true

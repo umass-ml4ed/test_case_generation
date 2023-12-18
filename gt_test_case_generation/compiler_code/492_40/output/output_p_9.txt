@@ -1,0 +1,13 @@
+cheeseandbreadandmayo
+butter
+peanutbutterandbreadandjelly
+jamand
+peanutbutter
+jelly
+jamandbreadandbutter
+java.lang.StringIndexOutOfBoundsException: begin 5, end -1, length 8 ERROR
+mayo
+honeyandbreadandnutella
+cheese
+honey
+nutellabreadand

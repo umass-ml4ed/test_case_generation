@@ -1,8 +1,0 @@
-[I@2145433b
-[I@2890c451
-[I@40e6dfe1
-[I@1b083826
-[I@105fece7
-java.lang.ArrayIndexOutOfBoundsException: Index 0 out of bounds for length 0 [I@16aa0a0a
-[I@780cb77
-[I@691a7f8f

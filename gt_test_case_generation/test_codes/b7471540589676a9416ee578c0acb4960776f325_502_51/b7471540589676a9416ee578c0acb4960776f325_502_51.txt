@@ -1,0 +1,123 @@
+You are a programming expert your task is to generate 13 unit test cases for the function - tenRun such that the function passes all of the 13 test cases.
+
+Programming Question: For each multiple of 10 in the given array, change all the values following it to be that multiple of 10, until encountering another multiple of 10. So {2, 10, 3, 4, 20, 5} yields {2, 10, 10, 10, 20, 20}.
+
+Code: 
+"
+public class TenRun
+{
+    public int[] tenRun(int[] nums)
+    {
+        int check = 1;
+        for (int i = 0; i < nums.length; i++)
+        {
+            if (nums[i]%10 == 0)
+            {
+                check = nums[i];
+            }
+            if (check%10 == 0)
+            {
+                nums[i] = check;
+            }
+        }
+        return nums;
+    }
+    
+    public void test_tenRun(String[] args)
+    {
+        // Come up with test cases here
+    }
+}
+"
+
+Hint: Complete the function "public void test_tenRun(String[] args)" with the test cases. Just define the test cases and make calls to tenRun. 
+
+For each test case your output must be as follows: 
+System.out.println('test_case_1', tenRun(test_case_1))
+
+The idea is to have all test cases pass the given code.
+
+Assistant: 
+Here are the 13 unit test cases for the function tenRun:
+
+```
+public void test_tenRun(String[] args)
+{
+    // Test case 1
+    int[] test_case_1 = {2, 10, 3, 4, 20, 5};
+    System.out.println(Arrays.toString(tenRun(test_case_1)));
+
+    // Test case 2
+    int[] test_case_2 = {10, 1, 20, 50};
+    System.out.println(Arrays.toString(tenRun(test_case_2)));
+
+    // Test case 3
+    int[] test_case_3 = {10, 1, 9, 20};
+    System.out.println(Arrays.toString(tenRun(test_case_3)));
+
+    // Test case 4
+    int[] test_case_4 = {1, 2, 50, 1};
+    System.out.println(Arrays.toString(tenRun(test_case_4)));
+
+    // Test case 5
+    int[] test_case_5 = {10, 10};
+    System.out.println(Arrays.toString(tenRun(test_case_5)));
+
+    // Test case 6
+    int[] test_case_6 = {10, 2};
+    System.out.println(Arrays.toString(tenRun(test_case_6)));
+
+    // Test case 7
+    int[] test_case_7 = {0, 2};
+    System.out.println(Arrays.toString(tenRun(test_case_7)));
+
+    // Test case 8
+    int[] test_case_8 = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    System.out.println(Arrays.toString(tenRun(test_case_8)));
+
+    // Test case 9
+    int[] test_case_9 = {10, 20, 30, 40, 50};
+    System.out.println(Arrays.toString(tenRun(test_case_9)));
+
+    // Test case 10
+    int[] test_case_10 = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+    System.out.println(Arrays.toString(tenRun(test_case_10)));
+
+    // Test case 11
+    int[] test_case_11 = {1, 2, 3, 4, 5, 10};
+    System.out.println(Arrays.toString(tenRun(test_case_11)));
+
+    // Test case 12
+    int[] test_case_12 = {10, 1, 2, 3, 4, 5};
+    System.out.println(Arrays.toString(tenRun(test_case_12)));
+
+    // Test case 13
+    int[] test_case_13 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    System.out.println(Arrays.toString(tenRun(test_case_13)));
+}
+```
+
+Please note that you need to import the Arrays class at the beginning of your code to use the Arrays.toString() method:
+
+```
+import java.util.Arrays;
+```
+
+Complier Results: 
+[2, 10, 10, 10, 20, 20]
+[10, 10, 20, 50]
+[10, 10, 10, 20]
+[1, 2, 50, 50]
+[10, 10]
+[10, 10]
+[0, 0]
+[1, 2, 3, 4, 5, 6, 7, 8, 9]
+[10, 20, 30, 40, 50]
+[10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+[1, 2, 3, 4, 5, 10]
+[10, 10, 10, 10, 10, 10]
+[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+Comments: 
+There are no assertion statements to measure how good the generated test cases are. As a human, we can manually look at the results of the compiler and determine the predicted score (number of test cases that yield the desirable output with respect to the question).
+Another idea is to pivot, i.e., for every single problem, use a single **correct** (for which the score is 1) code as pivot. In this approach, we use two codes, code 1 and code 2 in an interative refinement fashion such that the intersection of the correct outputs between code 1 and code 2 is K for N test cases generated. With respect to the ground truth score this means that K/N test cases pass for code 1. 
