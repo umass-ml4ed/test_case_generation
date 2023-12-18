@@ -19,7 +19,7 @@ TODO: Add citation
 
 ## Installation
 
-To run the code in the repository you will need to install the [Java](https://www.java.com/en/download/help/log_files.html).
+To run the code in the repository you will need to install [Java](https://www.java.com/en/download/help/log_files.html).
 
 To install the python libraries using ```conda``` execute the following command: 
 
