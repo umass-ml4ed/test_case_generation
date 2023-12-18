@@ -21,7 +21,7 @@ def set_api_key():
     '''
     Set OpenAI API key
     '''
-    openai.api_key = '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'
+    openai.api_key = 'Replace with API Key'
 
 ###############################################
 # NOTE: Response generation
