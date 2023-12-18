@@ -4,6 +4,8 @@ This repository contains code for the paper - "Using Large Language Models for S
 
 We ground our test case generation approach on the [CSEDM Challenge Dataset](https://sites.google.com/ncsu.edu/csedm-dc-2021/dataset?authuser=0).
 
+![approach_large_font](https://github.com/umass-ml4ed/question-gen-aug-ranking/assets/41947720/504602f3-9cfa-48cf-b929-cb61165ba8e2)
+
 If you find our code or paper useful, please consider citing:
 ```
 TODO: Add citation
